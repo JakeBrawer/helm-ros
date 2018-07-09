@@ -182,6 +182,21 @@
     :candidates 'helm-ros--service-candidate-list
     :action '(("Open file" . helm-ros--open-file-action))))
 
+(defvar helm-ros--message-candidate-list-cache nil)
+
+(defun helm-ros--message-candidate-list ()
+  (if helm-ros--message-candidate-list-cache
+      helm-ros--message-candidate-list-cache
+    (set 'helm-ros--message-candidate-list-cache
+         (mapcar 'helm-ros--displayed-real-pair-of-path
+                 (helm-ros--list-of-command-output
+                  (format "find -L %s -type f -name \"*.msg\"" helm-ros--package-path))))))
+
+
+(defvar helm-source-ros-messages
+  (helm-build-sync-source "Messages"
+    :candidates 'helm-ros--message-candidate-list
+    :action '(("Open file" . helm-ros--open-file-action))))
 
 ;; Actions
 
@@ -363,12 +378,24 @@ the car and the path to the package root as the cdr."
   (interactive)
   (helm :sources '(helm-source-ros-topics)))
 
+;;;###autoload
+(defun helm-ros-services ()
+  "Launch ros-helm with all available services."
+  (interactive)
+  (helm :sources '(helm-source-ros-services)))
+
+;;;###autoload
+(defun helm-ros-messages ()
+  "Launch ros-helm with all available messages."
+  (interactive)
+  (helm :sources '(helm-source-ros-messages)))
 
 ;;;###autoload
 (defun helm-ros ()
   "Launch ros-helm with all available sources."
   (interactive)
   (helm :sources '(helm-source-ros-services
+                   helm-source-ros-messages
                    helm-source-ros-launchfiles
                    helm-source-ros-packages
                    helm-source-ros-actions
